@@ -121,9 +121,9 @@ const useCallStore = create<CallStore>((set, get) => ({
   login: async (username: string, password: string) => {
     // 簡単な認証ロジック（実際のプロダクションでは外部認証システムを使用）
     const validCredentials = [
-      { username: 'operator1', password: 'pass123', name: 'オペレーター1', role: 'operator' },
-      { username: 'supervisor1', password: 'pass456', name: '上長1', role: 'supervisor' },
-      { username: 'admin', password: 'admin123', name: '管理者', role: 'admin' }
+      { username: 'user1', password: 'secret123', name: 'ユーザー1', role: 'operator' },
+      { username: 'manager1', password: 'secret456', name: 'マネージャー1', role: 'supervisor' },
+      { username: 'system', password: 'system789', name: 'システム管理者', role: 'admin' }
     ]
     
     const user = validCredentials.find(cred => 
