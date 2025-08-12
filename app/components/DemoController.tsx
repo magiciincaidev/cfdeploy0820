@@ -115,33 +115,45 @@ export default function DemoController({ currentStep, onStepChange }: DemoContro
       
       let element: HTMLElement | null = null
       
-      if (step.action === 'click') {
-        // 複数のセレクターを試す
-        const selectors = step.target!.split(', ')
+      if (step.action === 'click' && step.target) {
+        // 複数のセレクターを試す（型安全性向上）
+        const selectors = step.target.split(', ')
         for (const selector of selectors) {
-          element = iframeDoc.querySelector(selector.trim()) as HTMLElement
-          if (element) break
+          const foundElement = iframeDoc.querySelector(selector.trim())
+          if (foundElement && foundElement instanceof HTMLElement) {
+            element = foundElement
+            break
+          }
         }
         
-        // テキストコンテンツでも検索
-        if (!element && step.target!.includes('通話を開始')) {
+        // テキストコンテンツでも検索（型安全性向上）
+        if (!element && step.target.includes('通話を開始')) {
           const buttons = Array.from(iframeDoc.querySelectorAll('button'))
-          element = buttons.find(btn => 
+          const foundButton = buttons.find(btn => 
             btn.textContent?.includes('通話を開始') || 
             btn.textContent?.includes('通話開始') ||
             btn.getAttribute('onclick')?.includes('handleStartCall')
-          ) as HTMLElement
+          )
+          if (foundButton instanceof HTMLElement) {
+            element = foundButton
+          }
         }
-      } else if (step.action === 'select') {
-        element = iframeDoc.querySelector(step.target!) as HTMLSelectElement
+      } else if (step.action === 'select' && step.target) {
+        const selectElement = iframeDoc.querySelector(step.target)
+        if (selectElement instanceof HTMLSelectElement) {
+          element = selectElement
+        }
       }
       
       if (element) {
-        // 要素まで自動スクロール
+        // 要素まで自動スクロール（null安全性向上）
         const elementRect = element.getBoundingClientRect()
+        const iframe = iframeRef.current
+        if (!iframe) return
+        
         const iframeViewport = {
-          height: iframeRef.current!.clientHeight,
-          width: iframeRef.current!.clientWidth
+          height: iframe.clientHeight,
+          width: iframe.clientWidth
         }
         
         // 要素が画面に見えない場合はスクロール

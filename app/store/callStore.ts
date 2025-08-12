@@ -117,37 +117,39 @@ const useCallStore = create<CallStore>((set, get) => ({
     set({ currentSession: null })
   },
   
-  // 認証機能
+  // セキュアな認証機能
   login: async (username: string, password: string) => {
-    // 簡単な認証ロジック（実際のプロダクションでは外部認証システムを使用）
-    const validCredentials = [
-      { username: 'user1', password: 'secret123', name: 'ユーザー1', role: 'operator' },
-      { username: 'manager1', password: 'secret456', name: 'マネージャー1', role: 'supervisor' },
-      { username: 'system', password: 'system789', name: 'システム管理者', role: 'admin' }
-    ]
-    
-    const user = validCredentials.find(cred => 
-      cred.username === username && cred.password === password
-    )
-    
-    if (user) {
-      set({
-        isAuthenticated: true,
-        currentUser: {
-          id: user.username,
-          name: user.name,
-          role: user.role
+    try {
+      // 動的インポートでサーバーサイド認証を使用
+      const { authenticate, generateSessionToken } = await import('../lib/auth')
+      
+      const user = await authenticate(username, password)
+      
+      if (user) {
+        // セッショントークンを生成
+        const sessionToken = generateSessionToken(user)
+        
+        set({
+          isAuthenticated: true,
+          currentUser: user
+        })
+        
+        // セキュアなセッション情報をlocalStorageに保存
+        const sessionData = {
+          user,
+          token: sessionToken,
+          timestamp: Date.now()
         }
-      })
-      // ローカルストレージに認証情報を保存
-      localStorage.setItem('auth-user', JSON.stringify({
-        id: user.username,
-        name: user.name,
-        role: user.role
-      }))
-      return true
+        
+        localStorage.setItem('auth-session', JSON.stringify(sessionData))
+        return true
+      }
+      
+      return false
+    } catch (error) {
+      console.error('Login error:', error)
+      return false
     }
-    return false
   },
   
   logout: () => {
@@ -156,25 +158,58 @@ const useCallStore = create<CallStore>((set, get) => ({
       currentUser: null,
       currentSession: null
     })
-    // ローカルストレージから認証情報を削除
-    localStorage.removeItem('auth-user')
+    // セキュアなセッション情報を削除
+    localStorage.removeItem('auth-session')
+    localStorage.removeItem('auth-user') // 旧バージョンとの互換性
   },
   
-  initializeAuth: () => {
-    // ローカルストレージから認証情報を復元
+  initializeAuth: async () => {
+    // セキュアなセッション復元
     if (typeof window !== 'undefined') {
-      const savedUser = localStorage.getItem('auth-user')
-      if (savedUser) {
+      const sessionData = localStorage.getItem('auth-session')
+      if (sessionData) {
         try {
-          const user = JSON.parse(savedUser)
-          set({
-            isAuthenticated: true,
-            currentUser: user
-          })
+          const { user, token, timestamp } = JSON.parse(sessionData)
+          
+          // セッションの有効期限をチェック（24時間）
+          const sessionAge = Date.now() - timestamp
+          const maxAge = 24 * 60 * 60 * 1000 // 24時間
+          
+          if (sessionAge > maxAge) {
+            // セッション期限切れ
+            localStorage.removeItem('auth-session')
+            return
+          }
+          
+          // トークン検証（動的インポート）
+          try {
+            const { verifySessionToken } = await import('../lib/auth')
+            const userData = JSON.stringify({ user, timestamp })
+            
+            if (verifySessionToken(token, userData)) {
+              set({
+                isAuthenticated: true,
+                currentUser: user
+              })
+            } else {
+              // 無効なトークン
+              localStorage.removeItem('auth-session')
+            }
+          } catch (importError) {
+            // サーバーサイドでのエラー処理
+            console.error('Auth verification error:', importError)
+            localStorage.removeItem('auth-session')
+          }
         } catch (err) {
           // 無効なデータの場合は削除
-          localStorage.removeItem('auth-user')
+          localStorage.removeItem('auth-session')
         }
+      }
+      
+      // 旧バージョンのauth-userがあれば削除
+      const oldAuth = localStorage.getItem('auth-user')
+      if (oldAuth) {
+        localStorage.removeItem('auth-user')
       }
     }
   }
