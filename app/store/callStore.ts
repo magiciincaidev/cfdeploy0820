@@ -126,8 +126,8 @@ const useCallStore = create<CallStore>((set, get) => ({
       const user = await authenticate(username, password)
       
       if (user) {
-        // セッショントークンを生成
-        const sessionToken = generateSessionToken(user)
+        // セッショントークンを生成（非同期対応）
+        const sessionToken = await generateSessionToken(user)
         
         set({
           isAuthenticated: true,
@@ -181,12 +181,13 @@ const useCallStore = create<CallStore>((set, get) => ({
             return
           }
           
-          // トークン検証（動的インポート）
+          // トークン検証（動的インポート、非同期対応）
           try {
             const { verifySessionToken } = await import('../lib/auth')
             const userData = JSON.stringify({ user, timestamp })
             
-            if (verifySessionToken(token, userData)) {
+            const isValidToken = await verifySessionToken(token, userData)
+            if (isValidToken) {
               set({
                 isAuthenticated: true,
                 currentUser: user
