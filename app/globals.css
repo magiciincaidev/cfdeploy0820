@@ -1,0 +1,58 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root{
+  --w-page: 1678px;
+  --h-header: 111px;
+  --sidebar-w: 372px;
+  --radius-card: 13px;
+  --radius-chip: 13px;
+}
+
+html,body{height:100%;}
+body{ 
+  @apply text-ink-base;
+  background-color: #FCFCFC;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+.wrapper{ width: var(--w-page); margin: 0 auto; position: relative; }
+
+/* Header */
+.header{ @apply bg-bg-header shadow-header; width: calc(var(--w-page) + 88px); height: var(--h-header); position: relative; left: -44px; top: -3px; }
+.header-brand{ position: absolute; left: 69px; top: 41px; font-weight:600; font-size:28px; line-height:34px; }
+
+/* Status Pills */
+.pills{ position: absolute; top: 142px; left: 681px; display: flex; gap: 26px; }
+.pill{ width:146px; height:48px; border-radius:60px; display:flex; align-items:center; justify-content:center; font-size:24px; line-height:29px; }
+.pill--muted{ background:#D9D9D9; color:#000; }
+.pill--active{ background:#005DDA; color:#FFF; }
+
+/* Sidebar (left) */
+.sidebar{ position: absolute; left:55px; top:223px; width: var(--sidebar-w); height:1454px; background:#FFF; border:1px solid #808080; border-radius: var(--radius-card); padding: 26px 22px; }
+.sidebar .label{ font-size:24px; line-height:29px; margin-top: 22px; }
+.sidebar .chip{ background:#F3F3F3; border-radius: var(--radius-chip); height:75px; display:flex; align-items:center; padding-left:19px; margin-top:12px; }
+.sidebar .chip .value{ font-weight:500; font-size:28px; line-height:34px; }
+.sidebar .memo{ background:#F3F3F3; border-radius: var(--radius-chip); height:385px; margin-top: 18px; padding: 18px 19px; font-size:22px; line-height:33px; }
+
+/* Sections (right column cards) */
+.section{ position: absolute; left:469px; background:#FFF; border:1px solid #818181; border-radius: var(--radius-card); }
+.section--opening{ top:223px; width:1121px; height:390px; }
+.section--require{ top:646px; width:1121px; height:577px; }
+.section--promise{ top:1269px; width:1121px; height:886px; }
+.section--closing{ top:2190px; width:1121px; height:586px; }
+
+.hr{ position:absolute; left:470px; width:1120px; height:0; border-top:1px solid #818181; }
+
+/* Buttons (36x36, blue) */
+.sqbtn{ width:36px; height:36px; border-radius:6px; background:#005DDA; display:inline-block; }
+
+/* Info band (green translucent) */
+.infoband{ background: rgba(43,153,85,0.06); border-radius:12px; padding: 18px 24px; }
+
+/* Text scales */
+.h28{ font-weight:700; font-size:28px; line-height:34px; }
+.h24b{ font-weight:700; font-size:24px; line-height:29px; }
+.t24{ font-size:24px; line-height:29px; }
+.t22{ font-size:22px; line-height:33px; }
+.t18{ font-size:18px; line-height:22px; }
