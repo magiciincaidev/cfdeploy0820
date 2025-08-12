@@ -12,8 +12,6 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
   const [credentials, setCredentials] = useState({ username: '', password: '' })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
-  const [showDemo, setShowDemo] = useState(false)
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
@@ -31,16 +29,6 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
     } finally {
       setIsLoading(false)
     }
-  }
-
-  const handleDemoLogin = (role: 'operator' | 'supervisor' | 'admin') => {
-    const demoCredentials = {
-      operator: { username: 'operator1', password: 'pass123' },
-      supervisor: { username: 'supervisor1', password: 'pass456' },
-      admin: { username: 'admin', password: 'admin123' }
-    }
-    
-    setCredentials(demoCredentials[role])
   }
 
   return (
@@ -168,96 +156,6 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
           {isLoading ? 'ログイン中...' : 'ログイン'}
         </button>
       </form>
-
-      <div style={{
-        marginTop: '24px',
-        paddingTop: '24px',
-        borderTop: '1px solid #E0E0E0'
-      }}>
-        <button
-          type="button"
-          onClick={() => setShowDemo(!showDemo)}
-          style={{
-            width: '100%',
-            padding: '8px 16px',
-            background: 'transparent',
-            color: '#666',
-            border: '1px solid #E0E0E0',
-            borderRadius: '6px',
-            fontSize: '14px',
-            fontFamily: 'Inter',
-            cursor: 'pointer'
-          }}
-        >
-          {showDemo ? 'デモアカウントを隠す' : 'デモアカウントを表示'}
-        </button>
-
-        {showDemo && (
-          <div style={{ marginTop: '16px' }}>
-            <div style={{
-              fontSize: '12px',
-              color: '#666',
-              fontFamily: 'Inter',
-              marginBottom: '12px'
-            }}>
-              デモアカウント（クリックで自動入力）:
-            </div>
-            
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <button
-                type="button"
-                onClick={() => handleDemoLogin('operator')}
-                style={{
-                  padding: '8px 12px',
-                  background: '#F5F5F5',
-                  border: '1px solid #E0E0E0',
-                  borderRadius: '6px',
-                  fontSize: '12px',
-                  fontFamily: 'Inter',
-                  cursor: 'pointer',
-                  textAlign: 'left'
-                }}
-              >
-                オペレーター: operator1 / pass123
-              </button>
-              
-              <button
-                type="button"
-                onClick={() => handleDemoLogin('supervisor')}
-                style={{
-                  padding: '8px 12px',
-                  background: '#F5F5F5',
-                  border: '1px solid #E0E0E0',
-                  borderRadius: '6px',
-                  fontSize: '12px',
-                  fontFamily: 'Inter',
-                  cursor: 'pointer',
-                  textAlign: 'left'
-                }}
-              >
-                上長: supervisor1 / pass456
-              </button>
-              
-              <button
-                type="button"
-                onClick={() => handleDemoLogin('admin')}
-                style={{
-                  padding: '8px 12px',
-                  background: '#F5F5F5',
-                  border: '1px solid #E0E0E0',
-                  borderRadius: '6px',
-                  fontSize: '12px',
-                  fontFamily: 'Inter',
-                  cursor: 'pointer',
-                  textAlign: 'left'
-                }}
-              >
-                管理者: admin / admin123
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
     </div>
   )
 }
