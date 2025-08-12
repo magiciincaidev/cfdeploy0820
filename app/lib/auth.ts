@@ -32,17 +32,23 @@ async function simpleHash(text: string): Promise<string> {
   }
 }
 
-// 環境変数から認証情報を取得（Vercel対応）
+// 環境変数から認証情報を取得（Vercel Edge Runtime対応）
 function getValidCredentials(): AuthCredentials[] {
   const credentials: AuthCredentials[] = []
   
-  // 環境変数の取得（Vercel対応）
+  // 環境変数の取得（Edge Runtime対応）
   const getEnvVar = (key: string): string | undefined => {
     if (typeof window !== 'undefined') {
       // クライアントサイドでは使用不可
       return undefined
     }
-    return process.env[key]
+    // Edge Runtime環境でも動作するように修正
+    try {
+      return process.env[key] || globalThis.process?.env?.[key]
+    } catch (error) {
+      console.error(`Failed to read env var ${key}:`, error)
+      return undefined
+    }
   }
   
   // ユーザー1
@@ -84,18 +90,24 @@ function getValidCredentials(): AuthCredentials[] {
   return credentials
 }
 
-// セキュアな認証関数（Vercel対応）
+// セキュアな認証関数（Vercel Edge Runtime対応）
 export async function authenticate(username: string, password: string): Promise<User | null> {
   try {
     const validCredentials = getValidCredentials()
     
-    // デバッグ用ログ（本番環境では削除）
+    // デバッグ用ログ（環境変数読み込み状況も含む）
     console.log('Available credentials count:', validCredentials.length)
+    console.log('Environment variables check:', {
+      hasUser1Username: !!process.env.AUTH_USER1_USERNAME,
+      hasUser1Password: !!process.env.AUTH_USER1_PASSWORD,
+      user1UsernameValue: process.env.AUTH_USER1_USERNAME,
+      allEnvKeys: Object.keys(process.env).filter(k => k.startsWith('AUTH_'))
+    })
     
     // ユーザー名で検索
     const user = validCredentials.find(cred => cred.username === username)
     if (!user) {
-      console.log('User not found:', username)
+      console.log('User not found:', username, 'Available users:', validCredentials.map(c => c.username))
       return null
     }
     
