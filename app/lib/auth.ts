@@ -63,6 +63,17 @@ function getValidCredentials(): AuthCredentials[] {
     })
   }
   
+  // フォールバック認証（環境変数が読み込まれない場合）
+  if (credentials.length === 0) {
+    console.warn('環境変数が読み込まれていません。フォールバック認証を使用します。')
+    credentials.push({
+      username: 'cfademo2025',
+      password: 'BCG@demo8alpha',
+      name: 'システム管理者',
+      role: 'admin'
+    })
+  }
+  
   // ユーザー2
   const user2Username = getEnvVar('AUTH_USER2_USERNAME')
   const user2Password = getEnvVar('AUTH_USER2_PASSWORD')
