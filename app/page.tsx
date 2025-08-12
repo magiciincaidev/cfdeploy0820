@@ -1,15 +1,21 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import useCallStore from './store/callStore'
+import LoginForm from './components/LoginForm'
 
 export default function Home() {
   const router = useRouter()
-  const { currentCustomer, currentSession, getPhase } = useCallStore()
+  const { currentCustomer, currentSession, getPhase, isAuthenticated, currentUser, logout, initializeAuth } = useCallStore()
   const phase = getPhase()
   const [showDemo, setShowDemo] = useState(false)
+  
+  // 認証状態を初期化
+  useEffect(() => {
+    initializeAuth()
+  }, [])
   
   const handleDemoStart = () => {
     setShowDemo(true)
@@ -51,6 +57,29 @@ export default function Home() {
     router.push(feature.path)
   }
   
+  const handleLogout = () => {
+    logout()
+  }
+  
+  // 認証されていない場合はログインフォームを表示
+  if (!isAuthenticated) {
+    return (
+      <div style={{minHeight:'100vh', backgroundColor:'#FCFCFC', display:'flex', alignItems:'center', justifyContent:'center'}}>
+        <div style={{width:'100%', maxWidth:'500px', padding:'20px'}}>
+          <div style={{textAlign:'center', marginBottom:'40px'}}>
+            <h1 style={{fontSize:'36px', fontWeight:700, fontFamily:'Inter', margin:0, color:'#333'}}>
+              受架電支援AI -α版検証サイト
+            </h1>
+            <p style={{fontSize:'16px', color:'#666', fontFamily:'Inter', marginTop:'16px'}}>
+              システムを利用するにはログインが必要です
+            </p>
+          </div>
+          <LoginForm />
+        </div>
+      </div>
+    )
+  }
+  
   return (
     <div style={{minHeight:'100vh', backgroundColor:'#FCFCFC'}}>
       {/* Header */}
@@ -60,6 +89,42 @@ export default function Home() {
         padding:'40px 0'
       }}>
         <div style={{width:'1200px', margin:'0 auto', textAlign:'center', position:'relative'}}>
+          {/* ユーザー情報とログアウト */}
+          <div style={{
+            position:'absolute',
+            top:'0',
+            right:'0',
+            display:'flex',
+            alignItems:'center',
+            gap:'16px'
+          }}>
+            <div style={{
+              fontSize:'14px',
+              color:'#666',
+              fontFamily:'Inter'
+            }}>
+              ログイン中: <span style={{fontWeight:600, color:'#333'}}>{currentUser?.name}</span> ({currentUser?.role})
+            </div>
+            <button
+              onClick={handleLogout}
+              style={{
+                padding:'8px 16px',
+                background:'#F44336',
+                color:'#FFFFFF',
+                border:'none',
+                borderRadius:'6px',
+                fontSize:'14px',
+                fontFamily:'Inter',
+                cursor:'pointer',
+                transition:'background-color 0.2s'
+              }}
+              onMouseOver={(e) => e.currentTarget.style.background = '#D32F2F'}
+              onMouseOut={(e) => e.currentTarget.style.background = '#F44336'}
+            >
+              ログアウト
+            </button>
+          </div>
+          
           <h1 style={{fontSize:'36px', fontWeight:700, fontFamily:'Inter', margin:0, color:'#333'}}>
             受架電支援AI -α版検証サイト
           </h1>

@@ -1,13 +1,22 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import useCallStore from '../store/callStore'
 import { mockCustomers, mockTodoItems, mockMemoSummaries } from '../data/mockData'
 
 export default function BeforeCallPage() {
   const router = useRouter()
-  const { currentCustomer, selectCustomer, startCall } = useCallStore()
+  const { currentCustomer, selectCustomer, startCall, isAuthenticated, initializeAuth } = useCallStore()
+  
+  // 認証チェック
+  useEffect(() => {
+    initializeAuth()
+    if (!isAuthenticated) {
+      router.push('/')
+      return
+    }
+  }, [isAuthenticated, router, initializeAuth])
   
   const beforeCallTodos = mockTodoItems.filter(t => t.phase === 'before')
   const customerSummary = mockMemoSummaries.find(s => s.customerId === currentCustomer?.customerId)
@@ -50,6 +59,27 @@ export default function BeforeCallPage() {
     
     startCall()
     router.push('/in-call')
+  }
+  
+  // 認証されていない場合はローディング表示
+  if (!isAuthenticated) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        background: '#FCFCFC',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
+        <div style={{
+          fontSize: '18px',
+          color: '#666',
+          fontFamily: 'Inter'
+        }}>
+          認証を確認中...
+        </div>
+      </div>
+    )
   }
   
   return (

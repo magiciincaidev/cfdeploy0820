@@ -7,7 +7,7 @@ import { mockProcedures, mockTodoItems, mockTalkScripts, mockKnowledge, mockMemo
 
 export default function InCallPage() {
   const router = useRouter()
-  const { currentCustomer, currentSession, selectProcedures, toggleTodo, getTodoResults, endCall } = useCallStore()
+  const { currentCustomer, currentSession, selectProcedures, toggleTodo, getTodoResults, endCall, isAuthenticated, initializeAuth } = useCallStore()
   
   const [selectedProcedureIds, setSelectedProcedureIds] = useState<string[]>(['p1'])
   const [currentProcedureId, setCurrentProcedureId] = useState<string>('p1')
@@ -15,6 +15,12 @@ export default function InCallPage() {
   const [checkedTodos, setCheckedTodos] = useState<{[key: string]: boolean}>({})
   
   useEffect(() => {
+    initializeAuth()
+    if (!isAuthenticated) {
+      router.push('/')
+      return
+    }
+    
     if (!currentSession) {
       router.push('/before-call')
       return
@@ -29,7 +35,7 @@ export default function InCallPage() {
     const savedTodos = JSON.parse(localStorage.getItem(storageKey) || '{}')
     
     setCheckedTodos(savedTodos)
-  }, [currentSession?.sessionId, currentCustomer?.customerId, router])
+  }, [currentSession?.sessionId, currentCustomer?.customerId, router, isAuthenticated, initializeAuth])
   
   const handleEndCall = () => {
     endCall()
@@ -54,6 +60,27 @@ export default function InCallPage() {
   }
 
   const currentProcedure = mockProcedures.find(p => p.procedureId === currentProcedureId)
+  
+  // 認証されていない場合はローディング表示
+  if (!isAuthenticated) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        background: '#FCFCFC',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
+        <div style={{
+          fontSize: '18px',
+          color: '#666',
+          fontFamily: 'Inter'
+        }}>
+          認証を確認中...
+        </div>
+      </div>
+    )
+  }
   
   if (!currentSession) {
     return <div>Loading...</div>

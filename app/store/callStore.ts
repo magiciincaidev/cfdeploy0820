@@ -7,6 +7,10 @@ interface CallStore {
   currentSession: CallSession | null
   currentCustomer: Customer | null
   
+  // 認証情報
+  isAuthenticated: boolean
+  currentUser: { id: string, name: string, role: string } | null
+  
   // アクション
   selectCustomer: (customerId: string) => void
   startCall: () => void
@@ -16,11 +20,20 @@ interface CallStore {
   getTodoResults: () => TodoResult[]
   getPhase: () => 'before' | 'during' | 'after'
   resetSession: () => void
+  
+  // 認証アクション
+  login: (username: string, password: string) => Promise<boolean>
+  logout: () => void
+  initializeAuth: () => void
 }
 
 const useCallStore = create<CallStore>((set, get) => ({
   currentSession: null,
   currentCustomer: mockCustomers[0], // デフォルトで最初の顧客を選択
+  
+  // 認証の初期状態
+  isAuthenticated: false,
+  currentUser: null,
   
   selectCustomer: (customerId: string) => {
     const customer = mockCustomers.find(c => c.customerId === customerId)
@@ -102,6 +115,68 @@ const useCallStore = create<CallStore>((set, get) => ({
   
   resetSession: () => {
     set({ currentSession: null })
+  },
+  
+  // 認証機能
+  login: async (username: string, password: string) => {
+    // 簡単な認証ロジック（実際のプロダクションでは外部認証システムを使用）
+    const validCredentials = [
+      { username: 'operator1', password: 'pass123', name: 'オペレーター1', role: 'operator' },
+      { username: 'supervisor1', password: 'pass456', name: '上長1', role: 'supervisor' },
+      { username: 'admin', password: 'admin123', name: '管理者', role: 'admin' }
+    ]
+    
+    const user = validCredentials.find(cred => 
+      cred.username === username && cred.password === password
+    )
+    
+    if (user) {
+      set({
+        isAuthenticated: true,
+        currentUser: {
+          id: user.username,
+          name: user.name,
+          role: user.role
+        }
+      })
+      // ローカルストレージに認証情報を保存
+      localStorage.setItem('auth-user', JSON.stringify({
+        id: user.username,
+        name: user.name,
+        role: user.role
+      }))
+      return true
+    }
+    return false
+  },
+  
+  logout: () => {
+    set({
+      isAuthenticated: false,
+      currentUser: null,
+      currentSession: null
+    })
+    // ローカルストレージから認証情報を削除
+    localStorage.removeItem('auth-user')
+  },
+  
+  initializeAuth: () => {
+    // ローカルストレージから認証情報を復元
+    if (typeof window !== 'undefined') {
+      const savedUser = localStorage.getItem('auth-user')
+      if (savedUser) {
+        try {
+          const user = JSON.parse(savedUser)
+          set({
+            isAuthenticated: true,
+            currentUser: user
+          })
+        } catch (err) {
+          // 無効なデータの場合は削除
+          localStorage.removeItem('auth-user')
+        }
+      }
+    }
   }
 }))
 
