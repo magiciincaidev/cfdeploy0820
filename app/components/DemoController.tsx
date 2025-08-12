@@ -44,7 +44,7 @@ export default function DemoController({ currentStep, onStepChange }: DemoContro
   const [showCallingScreen, setShowCallingScreen] = useState(false)
   const [currentPage, setCurrentPage] = useState('/before-call')
   const iframeRef = useRef<HTMLIFrameElement>(null)
-  const stepTimerRef = useRef<NodeJS.Timeout>()
+  const stepTimerRef = useRef<NodeJS.Timeout | null>(null)
   
   // 顧客データを準備
   const customerData = {
