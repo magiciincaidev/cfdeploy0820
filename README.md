@@ -57,4 +57,44 @@ npm install
 
 ### その他の問題
 - Node.jsのバージョンを確認してください
-- npmのキャッシュをクリアしてください：`npm cache clean --force`s
+- npmのキャッシュをクリアしてください：`npm cache clean --force`
+
+## Gitブランチ方針
+
+### ブランチ戦略
+- **`main`**: 常に最新の安定版を保持するメインブランチ
+- **`feature/xxx`**: 機能開発用の作業ブランチ（例：`feature/chat`）
+
+### 開発フロー
+1. **作業ブランチの作成**
+
+以下はターミナル操作の例。プラグイン Git Graph, Got History, GitLens などを利用してプラグイン操作でも可
+   ```bash
+   git checkout main
+   git pull origin main
+   git checkout -b feature/新機能名
+   ```
+
+2. **開発・コミット**
+
+以下はターミナル操作の例。プラグイン Git Graph, Got History, GitLens などを利用してプラグイン操作でも可
+
+   ```bash
+   git add .
+   git commit -m "feat: 新機能の説明"
+   git push origin feature/新機能名
+   ```
+
+3. **プルリクエストの作成**
+   - `feature/xxx` → `main` 向けにプルリクエストを作成
+   - 適切なタイトルと説明を記載
+   - 必要に応じてレビュアーを指定
+
+4. **マージ**
+   - セルフマージを基本とする
+   - 重要な変更や複雑な機能の場合は適宜レビューを実施
+   - マージ後は作業ブランチを削除
+
+### 注意事項
+- `main`ブランチに直接コミットしない
+- 作業ブランチは定期的に`main`から最新化する
