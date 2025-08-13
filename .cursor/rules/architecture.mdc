@@ -1,0 +1,121 @@
+以下は、開発において、機能ごとに整理されたコンポーネントやロジックを管理するためのルールを記載しています。
+
+## 1. **ディレクトリ構造の基本方針**
+
+- **機能ごとの分割**: 各機能は独立したディレクトリに分割され、その中にコンポーネント、フック、ルーティングなどを含む。
+- **責務の分離**: UI 層（presentation）とロジック層（ドメイン、インフラ）を明確に分離し、コンポーネントをシンプルに保つ。
+- **共通化可能な処理の抽出**: 複数の機能で利用される共通処理は、`shared` ディレクトリに配置し、再利用性を高める。
+
+## 2-1. プレゼンテーションディレクトリ
+
+### **`presentation`**: UI機能を提供するディレクトリ
+
+#### **`components`**: UI コンポーネントを配置 以下は例
+- **`Button/`**: ボタン関連のコンポーネント
+  - `Button.tsx` - 基本ボタンコンポーネント
+  - `index.ts` - エクスポート
+- **`Modal/`**: モーダル関連のコンポーネント
+  - `Modal.tsx` - 基本モーダルコンポーネント
+  - `index.ts` - エクスポート
+- **`Loading/`**: ローディング関連のコンポーネント
+  - `Loading.tsx` - ローディング
+  - `index.ts` - エクスポート
+- **`Header/`**: ヘッダー関連のコンポーネント
+  - `Header.tsx` - メインヘッダーコンポーネント
+  - `index.ts` - エクスポート
+- **`Voice`**: 音声機能関連のコンポーネント
+  - **`VoiceRecognition/`**: 音声認識関連
+  - `VoiceRecognition.tsx` - 音声認識コンポーネント
+  - `index.ts` - エクスポート
+- **`Chat`**: チャット機能関連のコンポーネント
+  - **`ChatInterface/`**: チャットインターフェース
+  - `ChatInterface.tsx` - メインチャットコンポーネント
+  - `ChatMessage.tsx` - 個別メッセージコンポーネント
+  - `index.ts` - エクスポート
+
+#### **`pages`**: ページコンポーネントを配置 以下は例
+- **`CallPage.tsx`**: 通話ページコンポーネント
+  - 通話機能のメインページ
+  - 音声認識・AI応答・チャット機能を統合
+  - URLパラメータによるユーザー/オペレーター画面切り替え
+- **`OperatorPage.tsx`**: オペレーター専用ページコンポーネント
+  - オペレーター向け管理画面
+  - AI提案・通話履歴・セッション管理機能
+- **`UserPage.tsx`**: ユーザー専用ページコンポーネント
+  - ユーザー向け通話画面
+  - シンプルな音声認識・AI応答機能
+
+#### **`hooks`**: UI状態の管理、副作用の処理のカスタムフックを配置 以下は例
+- **`useVoice.ts`**: 音声認識フック
+  - 音声認識の開始・停止・状態管理
+- **`useChat.ts`**: AIチャットフック
+  - AI応答の生成・管理
+  - 会話履歴の管理
+- **`useSession.ts`**: セッション管理フック
+  - セッションの作成・終了・状態管理
+  - WebRTC通話の制御
+  - ルーム管理
+
+#### **`types`**: UI型定義を配置 以下は例
+- **`voice.ts`**: 音声関連の型定義
+  - VoiceRecognitionProps
+  - VoiceSynthesisProps
+  - AudioVisualizerProps
+  - VoiceStatus
+- **`chat.ts`**: チャット関連の型定義
+  - ChatMessageProps
+  - ChatInterfaceProps
+  - MessageListProps
+  - AIResponseProps
+- **`session.ts`**: セッション関連の型定義
+  - SessionInfoProps
+  - SessionControlsProps
+  - SessionStatus
+  - UserRole
+
+## 2-2 ドメインディレクトリ
+
+### **`domain`**: ドメインを配置　以下は例
+
+#### **`entities`**: ビジネスルールの表現。エンティティを配置　
+- **`User.ts`**:
+- **`Session.ts`**: 
+
+#### **`usecases`**: アプリケーションの具体的な機能。ユースケースを配置 以下は例
+- **`VoiceRecognitionUseCase.ts`**:
+- **`SessionUseCase.ts`**:
+
+#### **`repositories`**: リポジトリを配置 以下は例
+- **`ISessionRepository.ts`**:
+
+## 2-3 インフラストラクチャディレクトリ
+
+### **`infrastructure`**: CRUD操作 infra/api との繋ぎ込み。インフラストラクチャを配置　以下は例
+
+#### **`api`**: apiを配置　以下は例
+- **`openai.ts`**:
+
+#### **`stores`**: グローバルな状態管理を配置 以下は例
+- **`sessionStore.ts`**: 
+
+## 2-4. 共通ディレクトリ
+
+### **`shared`**: 複数の機能で利用される共通コンポーネントやロジックを配置
+
+#### **`contants`**: 共通 定数　以下は例
+- **`voice.ts`**: 
+
+#### **`utils`**: 共通ユーティリティ 以下は例
+- **`format.ts`**: 
+- **`validation.ts`**: 
+
+#### **`styles`**: 共通 style
+- **`globals.css`**: 
+- **`components.ts`**: 
+
+## 2-5. appディレクトリ
+
+### **`app`**: ルーティング管理を定義
+
+#### **`user`**:
+- **`page.ts`**: 
