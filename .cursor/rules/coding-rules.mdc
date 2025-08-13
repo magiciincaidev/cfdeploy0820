@@ -22,8 +22,49 @@
 - 型定義は any 禁止（どうしても必要ならコメントで理由を記載）
 - API レスポンスやフォーム値は 必ず型を作成して管理
 
+## Import・パス規約
+- **絶対パスを使用する**
+  - 相対パス（`../`、`../../`）は禁止
+  - 理由：ファイル移動時の修正が容易、可読性の向上、一貫性の維持
+  - 例：
+    ```typescript
+    // ❌ 悪い例
+    import { Button } from '../../../components/common/Button';
+    
+    // ✅ 良い例
+    import { Button } from '@/src/components/common/Button';
+    ```
+
+## 定数・列挙型規約
+- **enum ではなく as const を使用する**
+  - 理由：
+    1. 型安全性の向上：より厳密な型チェック
+    2. バンドルサイズの最適化：実行時オブジェクトの生成を防止
+    3. Tree-shaking対応：未使用の値が削除される
+    4. 読み取り専用：値の変更が不可能でより安全
+  - 例：
+    ```typescript
+    // ❌ 悪い例
+    export enum MessageType {
+      TEXT = 'text',
+      AUDIO = 'audio',
+      SYSTEM = 'system'
+    }
+    
+    // ✅ 良い例
+    export const MessageType = {
+      TEXT: 'text',
+      AUDIO: 'audio',
+      SYSTEM: 'system'
+    } as const;
+    
+    export type MessageType = typeof MessageType[keyof typeof MessageType];
+    ```
+
 ## 禁止事項
 - 直書きのマジックナンバー（定数化する）
 - console.log 残し
 - any の多用
 - API エンドポイントの直書き（process.env から取得）
+- 相対パスでのimport
+- enum の使用
