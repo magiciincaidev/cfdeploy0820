@@ -61,24 +61,53 @@ export default function InCallPage() {
   // URLパラメーターからロールを取得
   const role = searchParams.get('role') || 'operator'
 
+  // デバッグ情報を表示（開発環境のみ）
+  const debugInfo = process.env.NODE_ENV === 'development' && (
+    <div style={{
+      position: 'fixed',
+      top: '10px',
+      left: '10px',
+      background: 'rgba(0,0,0,0.8)',
+      color: 'white',
+      padding: '10px',
+      borderRadius: '5px',
+      fontSize: '12px',
+      zIndex: 9999,
+      fontFamily: 'monospace'
+    }}>
+      <div><strong>DEBUG INFO:</strong></div>
+      <div>Role: {role}</div>
+      <div>User ID: {userId}</div>
+      <div>Operator ID: {operatorId}</div>
+      <div>Conversation ID: {conversationId}</div>
+      <div>URL: {window.location.href}</div>
+    </div>
+  )
+
   // ロールに応じて表示内容を切り替え
   if (role === 'user') {
     // ユーザー通話画面
     return (
-      <UserCallView
-        userId={userId}
-        operatorId={operatorId}
-        conversationId={conversationId}
-      />
+      <>
+        {debugInfo}
+        <UserCallView
+          userId={userId}
+          operatorId={operatorId}
+          conversationId={conversationId}
+        />
+      </>
     )
   }
 
   // オペレーター通話画面（デフォルト）
   return (
-    <OperatorCallView
-      userId={userId}
-      operatorId={operatorId}
-      conversationId={conversationId}
-    />
+    <>
+      {debugInfo}
+      <OperatorCallView
+        userId={userId}
+        operatorId={operatorId}
+        conversationId={conversationId}
+      />
+    </>
   )
 }
