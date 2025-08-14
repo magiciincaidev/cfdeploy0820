@@ -1,6 +1,6 @@
 import ErrorBoundary from '@/src/presentation/components/ErrorBoundary'
+import '@/src/shared/styles/globals.css'
 import React from 'react'
-import './globals.css'
 
 export const metadata = { title: '受架電支援AI — α版検証サイト' }
 
