@@ -1,7 +1,7 @@
 'use client'
 
+import useCallStore from '@/src/infrastructure/store/callStore'
 import { useState } from 'react'
-import useCallStore from '../store/callStore'
 
 interface LoginFormProps {
   onLoginSuccess?: () => void
