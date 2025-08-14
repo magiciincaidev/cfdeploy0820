@@ -9,6 +9,7 @@
  * - ConversationMessage: 個別の会話メッセージ
  * - AIActionSuggestion: AIからのアクション提案
  * - CallSessionRepository: データアクセスの抽象化
+ * - CallSessionConstraints: セッション制約の管理
  */
 
 /**
@@ -37,10 +38,67 @@ export interface CallSession {
     endTime?: string;
 
     /** セッションの現在の状態 */
-    status: 'active' | 'ended';
+    status: 'waiting' | 'active' | 'ended';
 
     /** セッション内の会話履歴 */
     conversationHistory: ConversationMessage[];
+
+    /** セッションの制約情報 */
+    constraints: CallSessionConstraints;
+
+    /** 参加者の入室状態 */
+    participants: CallParticipants;
+}
+
+/**
+ * セッション制約の情報
+ * 
+ * 通話セッションにおける制約条件を管理します。
+ * 同時ペア数や入室制限などのビジネスルールを表現します。
+ */
+export interface CallSessionConstraints {
+    /** 最大同時ペア数 */
+    maxConcurrentPairs: number;
+
+    /** セッション作成時刻 */
+    createdAt: string;
+
+    /** セッション自動削除予定時刻 */
+    cleanupAt: string;
+
+    /** 入室待機状態の最大保持時間（ミリ秒） */
+    maxWaitingTime: number;
+}
+
+/**
+ * 通話参加者の状態
+ * 
+ * ユーザーとオペレーターの入室状態を管理します。
+ * 両方が入室した時点でセッションがアクティブになります。
+ */
+export interface CallParticipants {
+    /** ユーザーの入室状態 */
+    user: ParticipantStatus;
+
+    /** オペレーターの入室状態 */
+    operator: ParticipantStatus;
+}
+
+/**
+ * 個別参加者の状態
+ */
+export interface ParticipantStatus {
+    /** 参加者ID */
+    id: string;
+
+    /** 入室時刻（ISO 8601形式） */
+    joinedAt: string;
+
+    /** 退室時刻（ISO 8601形式、在室中はundefined） */
+    leftAt?: string;
+
+    /** 現在の状態 */
+    status: 'waiting' | 'joined' | 'left';
 }
 
 /**
