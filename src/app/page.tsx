@@ -150,6 +150,49 @@ export default function Home() {
             </Link>
           </div>
 
+          {/* オペレーター通話画面ボタン */}
+          <div style={{ marginTop: '12px' }}>
+            <Link
+              href="/in-call?role=operator"
+              style={{
+                display: 'inline-block',
+                padding: '16px 32px',
+                background: 'green',
+                color: '#FFFFFF',
+                textDecoration: 'none',
+                borderRadius: '8px',
+                fontSize: '18px',
+                fontWeight: 600,
+                fontFamily: 'Inter',
+                transition: 'all 0.3s ease'
+              }}
+            >
+              オペレーター通話画面
+            </Link>
+          </div>
+
+          {/* ユーザー通話画面ボタン */}
+          <div style={{ marginTop: '12px' }}>
+            <Link
+              href="/in-call?role=user"
+              style={{
+                display: 'inline-block',
+                padding: '16px 32px',
+                background: '#FF9800',
+                color: '#FFFFFF',
+                textDecoration: 'none',
+                borderRadius: '8px',
+                fontSize: '18px',
+                fontWeight: 600,
+                fontFamily: 'Inter',
+                transition: 'all 0.3s ease'
+              }}
+            >
+              ユーザー通話画面
+            </Link>
+          </div>
+
+
           {/* Demo Button - 一時的に非表示 */}
           {false && (
             <div style={{ marginTop: '32px' }}>
