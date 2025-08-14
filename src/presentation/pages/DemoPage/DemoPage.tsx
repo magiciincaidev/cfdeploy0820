@@ -1,24 +1,24 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import DemoController from '@/src/presentation/components/DemoController'
+import DemoOverlay from '@/src/presentation/components/DemoOverlay'
 import { useRouter } from 'next/navigation'
-import DemoController from '../components/DemoController'
-import DemoOverlay from '../components/DemoOverlay'
+import { useEffect, useState } from 'react'
 
 export default function DemoPage() {
   const router = useRouter()
   const [demoStarted, setDemoStarted] = useState(false)
   const [currentStep, setCurrentStep] = useState(0)
-  
+
   useEffect(() => {
     // デモ開始のカウントダウン
     const timer = setTimeout(() => {
       setDemoStarted(true)
     }, 2000)
-    
+
     return () => clearTimeout(timer)
   }, [])
-  
+
   if (!demoStarted) {
     return (
       <div style={{
@@ -44,7 +44,7 @@ export default function DemoPage() {
         }}>
           デモンストレーション開始
         </div>
-        
+
         <div style={{
           fontSize: '18px',
           fontWeight: 400,
@@ -57,14 +57,14 @@ export default function DemoPage() {
       </div>
     )
   }
-  
+
   return (
     <div style={{ position: 'relative', width: '100vw', height: '100vh', overflow: 'hidden' }}>
-      <DemoController 
+      <DemoController
         currentStep={currentStep}
         onStepChange={setCurrentStep}
       />
-      <DemoOverlay 
+      <DemoOverlay
         currentStep={currentStep}
       />
     </div>
