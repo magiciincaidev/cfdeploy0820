@@ -20,6 +20,13 @@ export default function Home() {
     return { userId, operatorId, conversationId }
   })
 
+  // 通話画面への遷移処理
+  const handleNavigateToCall = (role: 'user' | 'operator') => {
+    const url = `/in-call?role=${role}&userId=${sharedIds.userId}&operatorId=${sharedIds.operatorId}&conversationId=${sharedIds.conversationId}`
+    // 新しいタブで開く
+    window.open(url, '_blank')
+  }
+
   // 認証状態を初期化
   useEffect(() => {
     initializeAuth()
@@ -160,44 +167,48 @@ export default function Home() {
 
           {/* オペレーター通話画面ボタン */}
           <div style={{ marginTop: '12px' }}>
-            <Link
-              href={`/in-call?role=operator&userId=${sharedIds.userId}&operatorId=${sharedIds.operatorId}&conversationId=${sharedIds.conversationId}`}
+            <button
+              onClick={() => handleNavigateToCall('operator')}
+              title="新しいタブでオペレーター通話画面を開く"
               style={{
                 display: 'inline-block',
                 padding: '16px 32px',
                 background: 'green',
                 color: '#FFFFFF',
-                textDecoration: 'none',
+                border: 'none',
                 borderRadius: '8px',
                 fontSize: '18px',
-                fontWeight: 600,
+                fontWeight: '600',
                 fontFamily: 'Inter',
-                transition: 'all 0.3s ease'
+                transition: 'all 0.3s ease',
+                cursor: 'pointer'
               }}
             >
-              オペレーター通話画面
-            </Link>
+              🖥️ オペレーター通話画面
+            </button>
           </div>
 
           {/* ユーザー通話画面ボタン */}
           <div style={{ marginTop: '12px' }}>
-            <Link
-              href={`/in-call?role=user&userId=${sharedIds.userId}&operatorId=${sharedIds.operatorId}&conversationId=${sharedIds.conversationId}`}
+            <button
+              onClick={() => handleNavigateToCall('user')}
+              title="新しいタブでユーザー通話画面を開く"
               style={{
                 display: 'inline-block',
                 padding: '16px 32px',
                 background: '#FF9800',
                 color: '#FFFFFF',
-                textDecoration: 'none',
+                border: 'none',
                 borderRadius: '8px',
                 fontSize: '18px',
-                fontWeight: 600,
+                fontWeight: '600',
                 fontFamily: 'Inter',
-                transition: 'all 0.3s ease'
+                transition: 'all 0.3s ease',
+                cursor: 'pointer'
               }}
             >
-              ユーザー通話画面
-            </Link>
+              👤 ユーザー通話画面
+            </button>
           </div>
 
 

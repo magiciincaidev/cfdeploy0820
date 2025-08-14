@@ -9,9 +9,11 @@ interface OperatorCallViewProps {
     userId?: string;
     operatorId?: string;
     conversationId?: string;
+    sessionId?: string;
+    onLeave?: () => void;
 }
 
-export default function OperatorCallView({ userId, operatorId, conversationId }: OperatorCallViewProps) {
+export default function OperatorCallView({ userId, operatorId, conversationId, sessionId, onLeave }: OperatorCallViewProps) {
     const router = useRouter()
     const { currentCustomer, currentSession, selectProcedures, toggleTodo, getTodoResults, endCall, isAuthenticated, initializeAuth } = useCallStore()
 
@@ -50,6 +52,12 @@ export default function OperatorCallView({ userId, operatorId, conversationId }:
     }, [currentSession?.sessionId, currentCustomer?.customerId, router, isAuthenticated, initializeAuth])
 
     const handleEndCall = () => {
+        // セッション終了処理
+        if (onLeave) {
+            onLeave()
+        }
+
+        // 既存の処理
         endCall()
         router.push('/after-call')
     }

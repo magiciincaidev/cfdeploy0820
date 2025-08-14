@@ -1,5 +1,6 @@
-import { CallSession, ConversationMessage } from '@/src/domain/entities/CallSession';
+import { CallParticipants, CallSession, CallSessionConstraints, ConversationMessage } from '@/src/domain/entities/CallSession';
 import { ConversationContext, OpenAIResponse, OpenAIService } from '@/src/infrastructure/api/openai';
+import { CallSessionStatus, CallSessionConstraints as Constraints, StorageKeys } from '@/src/shared/constants/callSession';
 
 /**
  * CallSystemUseCase - 通話システムの中核ビジネスロジック
@@ -26,10 +27,16 @@ import { ConversationContext, OpenAIResponse, OpenAIService } from '@/src/infras
  *    - ビジネスルールの適用とデータフローの制御
  *    - ユーザー側とオペレーター側の両方で使用
  * 
+ * 5. セッション制約管理
+ *    - 同時ペア数の制限（現状1組のみ）
+ *    - 参加者の入室制御
+ *    - セッション状態の自動管理
+ * 
  * 使用方法:
  * - ユーザー画面: メッセージ送信時のAI提案生成
  * - オペレーター画面: セッション管理と会話履歴表示
  * - 通話管理: 通話の開始・終了・履歴の保存・復元
+ * - 制約管理: セッション制約の適用と参加者入室制御
  * 
  * アーキテクチャ上の位置づけ:
  * プレゼンテーション層 (UI) → CallSystemUseCase → インフラストラクチャ層 (API, Storage)
@@ -75,6 +82,358 @@ export class CallSystemUseCase {
      */
     generateConversationId(): string {
         return `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    }
+
+    /**
+     * 制約付きセッションを作成
+     * 
+     * セッション制約を適用して新しい通話セッションを作成します。
+     * 同時ペア数の制限や入室制御などのビジネスルールを適用します。
+     * 
+     * @param userId ユーザーID
+     * @param operatorId オペレーターID
+     * @returns 作成されたセッション情報
+     * @throws 制約違反の場合のエラー
+     */
+    createConstrainedSession(userId: string, operatorId: string): CallSession {
+        console.log('=== createConstrainedSession 開始 ===', { userId, operatorId })
+
+        // 既存セッションの制約チェック
+        this.checkSessionConstraints();
+
+        const now = new Date().toISOString();
+        const sessionId = this.generateSessionId();
+        const conversationId = this.generateConversationId();
+
+        const constraints: CallSessionConstraints = {
+            maxConcurrentPairs: Constraints.MAX_CONCURRENT_PAIRS,
+            createdAt: now,
+            cleanupAt: new Date(Date.now() + Constraints.SESSION_CLEANUP_DELAY).toISOString(),
+            maxWaitingTime: Constraints.MAX_WAITING_TIME
+        };
+
+        const participants: CallParticipants = {
+            user: {
+                id: userId,
+                joinedAt: now,
+                status: 'waiting'
+            },
+            operator: {
+                id: operatorId,
+                joinedAt: now,
+                status: 'waiting'
+            }
+        };
+
+        const session: CallSession = {
+            sessionId,
+            userId,
+            operatorId,
+            conversationId,
+            startTime: now,
+            status: CallSessionStatus.WAITING,
+            conversationHistory: [],
+            constraints,
+            participants
+        };
+
+        console.log('セッション作成完了:', {
+            sessionId,
+            conversationId,
+            status: session.status,
+            userStatus: session.participants.user.status,
+            operatorStatus: session.participants.operator.status,
+            timestamp: now
+        });
+
+        this.saveSessionToStorage(session);
+        this.saveSessionConstraints(sessionId, constraints);
+        this.saveParticipantStatus(sessionId, participants);
+
+        return session;
+    }
+
+    /**
+     * セッション制約をチェック
+     * 
+     * 同時ペア数の制限などのセッション制約をチェックします。
+     * 制約違反の場合はエラーを投げます。
+     * 
+     * @throws 制約違反の場合のエラー
+     */
+    private checkSessionConstraints(): void {
+        const activeSessions = this.getActiveSessions();
+        if (activeSessions.length >= Constraints.MAX_CONCURRENT_PAIRS) {
+            throw new Error(`同時ペア数の制限に達しています。最大${Constraints.MAX_CONCURRENT_PAIRS}組まで利用可能です。`);
+        }
+    }
+
+    /**
+     * 全てのセッションを取得
+     * 
+     * ローカルストレージから全てのセッション情報を取得します。
+     * データ構造が不完全なセッションは除外します。
+     * 
+     * @returns 全てのセッションの配列
+     */
+    getAllSessions(): CallSession[] {
+        const sessions: CallSession[] = [];
+        const keys = Object.keys(localStorage);
+
+        console.log('=== getAllSessions 開始 ===')
+        console.log('localStorage キー数:', keys.length)
+        console.log('CALL_SESSION プレフィックス:', StorageKeys.CALL_SESSION)
+
+        for (const key of keys) {
+            if (key.startsWith(StorageKeys.CALL_SESSION)) {
+                try {
+                    const session = JSON.parse(localStorage.getItem(key) || '');
+                    if (session) {
+                        // データ構造の整合性をチェック
+                        if (this.isValidSession(session)) {
+                            sessions.push(session);
+                            console.log('セッション読み込み成功:', {
+                                key,
+                                sessionId: session.sessionId,
+                                status: session.status
+                            })
+                        } else {
+                            console.warn('不完全なセッションデータを除外:', {
+                                key,
+                                sessionId: session.sessionId,
+                                reason: 'データ構造が不完全'
+                            })
+                            // 不完全なデータを削除
+                            localStorage.removeItem(key)
+                        }
+                    }
+                } catch (error) {
+                    console.warn('セッション情報の解析に失敗:', key, error)
+                    // 破損したデータを削除
+                    localStorage.removeItem(key)
+                }
+            }
+        }
+
+        console.log('取得されたセッション数:', sessions.length)
+        return sessions;
+    }
+
+    /**
+     * セッションデータの整合性をチェック
+     * 
+     * @param session チェックするセッション
+     * @returns 整合性が取れている場合はtrue
+     */
+    private isValidSession(session: any): session is CallSession {
+        return (
+            session &&
+            typeof session === 'object' &&
+            typeof session.sessionId === 'string' &&
+            typeof session.userId === 'string' &&
+            typeof session.operatorId === 'string' &&
+            typeof session.status === 'string' &&
+            session.participants &&
+            typeof session.participants === 'object' &&
+            session.participants.user &&
+            typeof session.participants.user === 'object' &&
+            session.participants.operator &&
+            typeof session.participants.operator === 'object' &&
+            typeof session.participants.user.status === 'string' &&
+            typeof session.participants.operator.status === 'string'
+        );
+    }
+
+    /**
+     * アクティブなセッションを取得
+     * 
+     * 現在アクティブまたは待機中のセッションを取得します。
+     * 
+     * @returns アクティブなセッションの配列
+     */
+    private getActiveSessions(): CallSession[] {
+        const sessions: CallSession[] = [];
+        const keys = Object.keys(localStorage);
+
+        for (const key of keys) {
+            if (key.startsWith(StorageKeys.CALL_SESSION)) {
+                try {
+                    const session = JSON.parse(localStorage.getItem(key) || '');
+                    if (session && (session.status === CallSessionStatus.ACTIVE || session.status === CallSessionStatus.WAITING)) {
+                        sessions.push(session);
+                    }
+                } catch (error) {
+                    console.warn('セッション情報の解析に失敗:', key, error);
+                }
+            }
+        }
+
+        return sessions;
+    }
+
+    /**
+     * 参加者の入室処理
+     * 
+     * 指定された参加者がセッションに入室します。
+     * 両方が入室した時点でセッションがアクティブになります。
+     * 
+     * @param sessionId セッションID
+     * @param participantId 参加者ID
+     * @param role 参加者の役割
+     * @returns 更新されたセッション情報
+     */
+    joinSession(sessionId: string, participantId: string, role: 'user' | 'operator'): CallSession {
+        console.log('=== joinSession 開始 ===', { sessionId, participantId, role })
+
+        const session = this.getSessionFromStorage(sessionId);
+        if (!session) {
+            throw new Error('セッションが見つかりません');
+        }
+
+        console.log('入室前のセッション状態:', {
+            sessionId,
+            status: session.status,
+            userStatus: session.participants.user.status,
+            operatorStatus: session.participants.operator.status
+        })
+
+        const now = new Date().toISOString();
+        const participantKey = role as keyof CallParticipants;
+
+        // 参加者状態を更新
+        const oldStatus = session.participants[participantKey].status
+        session.participants[participantKey] = {
+            ...session.participants[participantKey],
+            joinedAt: now,
+            status: 'joined'
+        };
+
+        console.log('参加者状態更新:', {
+            role,
+            participantId,
+            oldStatus,
+            newStatus: 'joined',
+            timestamp: now
+        })
+
+        // 両方が入室したかチェック
+        const bothJoined = session.participants.user.status === 'joined' &&
+            session.participants.operator.status === 'joined';
+
+        console.log('両方入室チェック:', {
+            userStatus: session.participants.user.status,
+            operatorStatus: session.participants.operator.status,
+            bothJoined,
+            currentSessionStatus: session.status
+        })
+
+        if (bothJoined && session.status === CallSessionStatus.WAITING) {
+            const oldStatus = session.status
+            session.status = CallSessionStatus.ACTIVE;
+            console.log('🚨 セッションがアクティブになりました:', {
+                sessionId,
+                from: oldStatus,
+                to: session.status,
+                timestamp: now
+            });
+        }
+
+        // セッション情報を保存
+        this.saveSessionToStorage(session);
+        this.saveParticipantStatus(sessionId, session.participants);
+
+        // デバッグ情報
+        console.log('参加者入室完了:', {
+            sessionId,
+            role,
+            participantId,
+            sessionStatus: session.status,
+            userStatus: session.participants.user.status,
+            operatorStatus: session.participants.operator.status,
+            timestamp: now
+        });
+
+        return session;
+    }
+
+    /**
+     * 参加者の退室処理
+     * 
+     * 指定された参加者がセッションから退室します。
+     * セッション状態を適切に更新します。
+     * 
+     * @param sessionId セッションID
+     * @param participantId 参加者ID
+     * @param role 参加者の役割
+     */
+    leaveSession(sessionId: string, participantId: string, role: 'user' | 'operator'): void {
+        const session = this.getSessionFromStorage(sessionId);
+        if (!session) return;
+
+        const now = new Date().toISOString();
+        const participantKey = role as keyof CallParticipants;
+
+        // 参加者状態を更新
+        session.participants[participantKey] = {
+            ...session.participants[participantKey],
+            leftAt: now,
+            status: 'left'
+        };
+
+        // セッション状態を更新
+        if (session.participants.user.status === 'left' || session.participants.operator.status === 'left') {
+            session.status = CallSessionStatus.ENDED;
+            session.endTime = now;
+        }
+
+        this.saveSessionToStorage(session);
+        this.saveParticipantStatus(sessionId, session.participants);
+    }
+
+    /**
+     * セッション制約を保存
+     * 
+     * @param sessionId セッションID
+     * @param constraints 制約情報
+     */
+    private saveSessionConstraints(sessionId: string, constraints: CallSessionConstraints): void {
+        const storageKey = `${StorageKeys.SESSION_CONSTRAINTS}-${sessionId}`;
+        localStorage.setItem(storageKey, JSON.stringify(constraints));
+    }
+
+    /**
+     * 参加者状態を保存
+     * 
+     * @param sessionId セッションID
+     * @param participants 参加者状態
+     */
+    private saveParticipantStatus(sessionId: string, participants: CallParticipants): void {
+        const storageKey = `${StorageKeys.PARTICIPANT_STATUS}-${sessionId}`;
+        localStorage.setItem(storageKey, JSON.stringify(participants));
+    }
+
+    /**
+     * セッション制約を取得
+     * 
+     * @param sessionId セッションID
+     * @returns 制約情報
+     */
+    getSessionConstraints(sessionId: string): CallSessionConstraints | null {
+        const storageKey = `${StorageKeys.SESSION_CONSTRAINTS}-${sessionId}`;
+        const stored = localStorage.getItem(storageKey);
+        return stored ? JSON.parse(stored) : null;
+    }
+
+    /**
+     * 参加者状態を取得
+     * 
+     * @param sessionId セッションID
+     * @returns 参加者状態
+     */
+    getParticipantStatus(sessionId: string): CallParticipants | null {
+        const storageKey = `${StorageKeys.PARTICIPANT_STATUS}-${sessionId}`;
+        const stored = localStorage.getItem(storageKey);
+        return stored ? JSON.parse(stored) : null;
     }
 
     /**
@@ -129,7 +488,7 @@ export class CallSystemUseCase {
      * @param session 保存するセッション情報
      */
     saveSessionToStorage(session: CallSession): void {
-        const storageKey = `call-session-${session.sessionId}`;
+        const storageKey = `${StorageKeys.CALL_SESSION}-${session.sessionId}`;
         localStorage.setItem(storageKey, JSON.stringify(session));
     }
 
@@ -143,7 +502,7 @@ export class CallSystemUseCase {
      * @returns セッション情報、存在しない場合はnull
      */
     getSessionFromStorage(sessionId: string): CallSession | null {
-        const storageKey = `call-session-${sessionId}`;
+        const storageKey = `${StorageKeys.CALL_SESSION}-${sessionId}`;
         const stored = localStorage.getItem(storageKey);
         return stored ? JSON.parse(stored) : null;
     }
@@ -158,7 +517,7 @@ export class CallSystemUseCase {
      * @param history 保存する会話履歴の配列
      */
     saveConversationHistory(sessionId: string, history: ConversationMessage[]): void {
-        const storageKey = `conversation-history-${sessionId}`;
+        const storageKey = `${StorageKeys.CONVERSATION_HISTORY}-${sessionId}`;
         localStorage.setItem(storageKey, JSON.stringify(history));
     }
 
@@ -172,7 +531,7 @@ export class CallSystemUseCase {
      * @returns 会話履歴の配列、存在しない場合は空配列
      */
     getConversationHistory(sessionId: string): ConversationMessage[] {
-        const storageKey = `conversation-history-${sessionId}`;
+        const storageKey = `${StorageKeys.CONVERSATION_HISTORY}-${sessionId}`;
         const stored = localStorage.getItem(storageKey);
         return stored ? JSON.parse(stored) : [];
     }
@@ -192,5 +551,57 @@ export class CallSystemUseCase {
             session.endTime = new Date().toISOString();
             this.saveSessionToStorage(session);
         }
+    }
+
+    /**
+     * 全てのセッションデータをクリア
+     * 
+     * ローカルストレージから全てのセッション関連データを削除します。
+     * デバッグやテスト時に使用します。
+     */
+    clearAllSessions(): void {
+        console.log('=== 全セッションデータクリア開始 ===')
+
+        const keys = Object.keys(localStorage);
+        let clearedCount = 0;
+
+        for (const key of keys) {
+            if (key.startsWith(StorageKeys.CALL_SESSION) ||
+                key.startsWith(StorageKeys.CONVERSATION_HISTORY) ||
+                key.startsWith(StorageKeys.SESSION_CONSTRAINTS) ||
+                key.startsWith(StorageKeys.PARTICIPANT_STATUS)) {
+
+                localStorage.removeItem(key);
+                clearedCount++;
+                console.log('削除されたキー:', key);
+            }
+        }
+
+        console.log(`クリア完了: ${clearedCount}個のキーを削除`);
+    }
+
+    /**
+     * 特定のセッションの全データをクリア
+     * 
+     * @param sessionId クリアするセッションID
+     */
+    clearSession(sessionId: string): void {
+        console.log('=== セッションデータクリア開始 ===', { sessionId })
+
+        const keys = [
+            `${StorageKeys.CALL_SESSION}-${sessionId}`,
+            `${StorageKeys.CONVERSATION_HISTORY}-${sessionId}`,
+            `${StorageKeys.SESSION_CONSTRAINTS}-${sessionId}`,
+            `${StorageKeys.PARTICIPANT_STATUS}-${sessionId}`
+        ];
+
+        keys.forEach(key => {
+            if (localStorage.getItem(key)) {
+                localStorage.removeItem(key);
+                console.log('削除されたキー:', key);
+            }
+        });
+
+        console.log('セッションデータクリア完了');
     }
 }
