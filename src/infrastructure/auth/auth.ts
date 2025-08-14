@@ -67,8 +67,8 @@ function getValidCredentials(): AuthCredentials[] {
     if (credentials.length === 0) {
         console.warn('環境変数が読み込まれていません。フォールバック認証を使用します。')
         credentials.push({
-            username: 'a',
-            password: 'b',
+            username: 'aaa',
+            password: 'bbb',
             name: 'システム管理者',
             role: 'admin'
         })
