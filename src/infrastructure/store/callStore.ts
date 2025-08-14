@@ -1,6 +1,6 @@
+import { CallSession, Customer, TodoResult } from '@/src/presentation/types/callTypes'
+import { mockCustomers } from '@/src/shared/data/mockData'
 import { create } from 'zustand'
-import { mockCustomers } from '../data/mockData'
-import { CallSession, Customer, TodoResult } from '../types'
 
 interface CallStore {
     // 現在のセッション情報
@@ -121,7 +121,7 @@ const useCallStore = create<CallStore>((set, get) => ({
     login: async (username: string, password: string) => {
         try {
             // 動的インポートでサーバーサイド認証を使用
-            const { authenticate, generateSessionToken } = await import('../lib/auth')
+            const { authenticate, generateSessionToken } = await import('@/src/infrastructure/auth/auth')
 
             const user = await authenticate(username, password)
 
@@ -183,7 +183,7 @@ const useCallStore = create<CallStore>((set, get) => ({
 
                     // トークン検証（動的インポート、非同期対応）
                     try {
-                        const { verifySessionToken } = await import('../lib/auth')
+                        const { verifySessionToken } = await import('@/src/infrastructure/auth/auth')
                         const userData = JSON.stringify({ user, timestamp })
 
                         const isValidToken = await verifySessionToken(token, userData)

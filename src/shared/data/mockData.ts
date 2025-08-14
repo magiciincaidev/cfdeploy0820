@@ -1,4 +1,4 @@
-import { Customer, Knowledge, MemoSummary, Procedure, ProcedureAssets, TalkScript, TodoItem } from '@src/presentation/types/callTypes'
+import { Customer, Knowledge, MemoSummary, Procedure, ProcedureAssets, TalkScript, TodoItem } from '@/src/presentation/types/callTypes'
 
 export const mockCustomers: Customer[] = [
     {
