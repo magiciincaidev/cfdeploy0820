@@ -12,6 +12,14 @@ export default function Home() {
   const phase = getPhase()
   const [showDemo, setShowDemo] = useState(false)
 
+  // 通話画面用の共有IDを生成
+  const [sharedIds, setSharedIds] = useState(() => {
+    const userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    const operatorId = `operator_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    const conversationId = `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    return { userId, operatorId, conversationId }
+  })
+
   // 認証状態を初期化
   useEffect(() => {
     initializeAuth()
@@ -149,6 +157,49 @@ export default function Home() {
               α版にアクセスする
             </Link>
           </div>
+
+          {/* オペレーター通話画面ボタン */}
+          <div style={{ marginTop: '12px' }}>
+            <Link
+              href={`/in-call?role=operator&userId=${sharedIds.userId}&operatorId=${sharedIds.operatorId}&conversationId=${sharedIds.conversationId}`}
+              style={{
+                display: 'inline-block',
+                padding: '16px 32px',
+                background: 'green',
+                color: '#FFFFFF',
+                textDecoration: 'none',
+                borderRadius: '8px',
+                fontSize: '18px',
+                fontWeight: 600,
+                fontFamily: 'Inter',
+                transition: 'all 0.3s ease'
+              }}
+            >
+              オペレーター通話画面
+            </Link>
+          </div>
+
+          {/* ユーザー通話画面ボタン */}
+          <div style={{ marginTop: '12px' }}>
+            <Link
+              href={`/in-call?role=user&userId=${sharedIds.userId}&operatorId=${sharedIds.operatorId}&conversationId=${sharedIds.conversationId}`}
+              style={{
+                display: 'inline-block',
+                padding: '16px 32px',
+                background: '#FF9800',
+                color: '#FFFFFF',
+                textDecoration: 'none',
+                borderRadius: '8px',
+                fontSize: '18px',
+                fontWeight: 600,
+                fontFamily: 'Inter',
+                transition: 'all 0.3s ease'
+              }}
+            >
+              ユーザー通話画面
+            </Link>
+          </div>
+
 
           {/* Demo Button - 一時的に非表示 */}
           {false && (
