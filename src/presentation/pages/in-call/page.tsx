@@ -1,47 +1,47 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import useCallStore from '@/src/infrastructure/store/callStore'
+import { mockMemoSummaries, mockProcedures } from '@/src/shared/data/mockData'
 import { useRouter } from 'next/navigation'
-import useCallStore from '../store/callStore'
-import { mockProcedures, mockTodoItems, mockTalkScripts, mockKnowledge, mockMemoSummaries } from '../data/mockData'
+import { useEffect, useState } from 'react'
 
 export default function InCallPage() {
   const router = useRouter()
   const { currentCustomer, currentSession, selectProcedures, toggleTodo, getTodoResults, endCall, isAuthenticated, initializeAuth } = useCallStore()
-  
+
   const [selectedProcedureIds, setSelectedProcedureIds] = useState<string[]>(['p1'])
   const [currentProcedureId, setCurrentProcedureId] = useState<string>('p1')
   const [summaryText, setSummaryText] = useState('')
-  const [checkedTodos, setCheckedTodos] = useState<{[key: string]: boolean}>({})
-  
+  const [checkedTodos, setCheckedTodos] = useState<{ [key: string]: boolean }>({})
+
   useEffect(() => {
     initializeAuth()
     if (!isAuthenticated) {
       router.push('/')
       return
     }
-    
+
     if (!currentSession) {
       router.push('/before-call')
       return
     }
-    
+
     // Initialize summary
     const customerSummary = mockMemoSummaries.find(s => s.customerId === currentCustomer?.customerId)
     setSummaryText(customerSummary?.summaryText || '')
-    
+
     // Load from localStorage first
     const storageKey = `call-todos-${currentSession?.sessionId}`
     const savedTodos = JSON.parse(localStorage.getItem(storageKey) || '{}')
-    
+
     setCheckedTodos(savedTodos)
   }, [currentSession?.sessionId, currentCustomer?.customerId, router, isAuthenticated, initializeAuth])
-  
+
   const handleEndCall = () => {
     endCall()
     router.push('/after-call')
   }
-  
+
 
   const handleProcedureChange = (procedureId: string) => {
     setCurrentProcedureId(procedureId)
@@ -49,9 +49,9 @@ export default function InCallPage() {
   }
 
   const handleTodoToggle = (todoId: string, checked: boolean) => {
-    setCheckedTodos(prev => ({...prev, [todoId]: checked}))
+    setCheckedTodos(prev => ({ ...prev, [todoId]: checked }))
     toggleTodo(todoId, checked, '')
-    
+
     // Save to localStorage
     const storageKey = `call-todos-${currentSession?.sessionId}`
     const currentData = JSON.parse(localStorage.getItem(storageKey) || '{}')
@@ -60,7 +60,7 @@ export default function InCallPage() {
   }
 
   const currentProcedure = mockProcedures.find(p => p.procedureId === currentProcedureId)
-  
+
   // 認証されていない場合はローディング表示
   if (!isAuthenticated) {
     return (
@@ -81,11 +81,11 @@ export default function InCallPage() {
       </div>
     )
   }
-  
+
   if (!currentSession) {
     return <div>Loading...</div>
   }
-  
+
   return (
     <div style={{
       position: 'relative',
@@ -95,7 +95,7 @@ export default function InCallPage() {
       margin: '0 auto',
       fontFamily: 'Roboto, sans-serif'
     }}>
-      
+
       {/* Header Container */}
       <div style={{
         position: 'absolute',
@@ -122,7 +122,7 @@ export default function InCallPage() {
           受架電支援AI
         </div>
       </div>
-      
+
       {/* Status Pills */}
       <div style={{
         position: 'absolute',
@@ -148,7 +148,7 @@ export default function InCallPage() {
           架電前
         </div>
       </div>
-      
+
       <div style={{
         position: 'absolute',
         width: '146px',
@@ -173,7 +173,7 @@ export default function InCallPage() {
           架電中
         </div>
       </div>
-      
+
       <div style={{
         position: 'absolute',
         width: '146px',
@@ -198,7 +198,7 @@ export default function InCallPage() {
           架電後
         </div>
       </div>
-      
+
       {/* Left Sidebar */}
       <div style={{
         position: 'absolute',
@@ -210,7 +210,7 @@ export default function InCallPage() {
         border: '1px solid #818181',
         borderRadius: '13px'
       }}>
-        
+
         {/* Customer Info Sections */}
         <div style={{
           position: 'absolute',
@@ -226,7 +226,7 @@ export default function InCallPage() {
         }}>
           会員番号
         </div>
-        
+
         <div style={{
           position: 'absolute',
           width: '327px',
@@ -251,7 +251,7 @@ export default function InCallPage() {
             {currentCustomer?.accountNumber}
           </div>
         </div>
-        
+
         <div style={{
           position: 'absolute',
           width: '48px',
@@ -266,7 +266,7 @@ export default function InCallPage() {
         }}>
           名前
         </div>
-        
+
         <div style={{
           position: 'absolute',
           width: '327px',
@@ -291,7 +291,7 @@ export default function InCallPage() {
             {currentCustomer?.name}
           </div>
         </div>
-        
+
         <div style={{
           position: 'absolute',
           width: '72px',
@@ -306,7 +306,7 @@ export default function InCallPage() {
         }}>
           返済日
         </div>
-        
+
         <div style={{
           position: 'absolute',
           width: '327px',
@@ -331,7 +331,7 @@ export default function InCallPage() {
             {currentCustomer?.paymentDate}
           </div>
         </div>
-        
+
         <div style={{
           position: 'absolute',
           width: '72px',
@@ -346,7 +346,7 @@ export default function InCallPage() {
         }}>
           返済額
         </div>
-        
+
         <div style={{
           position: 'absolute',
           width: '327px',
@@ -371,7 +371,7 @@ export default function InCallPage() {
             {currentCustomer?.paymentAmount}
           </div>
         </div>
-        
+
         <div style={{
           position: 'absolute',
           width: '288px',
@@ -386,7 +386,7 @@ export default function InCallPage() {
         }}>
           コンタクト履歴（サマリ）
         </div>
-        
+
         <div style={{
           position: 'absolute',
           width: '327px',
@@ -412,7 +412,7 @@ export default function InCallPage() {
             {summaryText}
           </div>
         </div>
-        
+
         <div style={{
           position: 'absolute',
           width: '96px',
@@ -427,7 +427,7 @@ export default function InCallPage() {
         }}>
           移管確率
         </div>
-        
+
         <div style={{
           position: 'absolute',
           width: '327px',
@@ -453,7 +453,7 @@ export default function InCallPage() {
           </div>
         </div>
       </div>
-      
+
       {/* Opening Section */}
       <div style={{
         position: 'absolute',
@@ -465,9 +465,9 @@ export default function InCallPage() {
         border: '1px solid #818181',
         borderRadius: '13px'
       }}>
-        
+
         {/* Opening Button */}
-        <div 
+        <div
           onClick={() => handleTodoToggle('t5', !checkedTodos['t5'])}
           style={{
             position: 'absolute',
@@ -488,7 +488,7 @@ export default function InCallPage() {
         >
           {checkedTodos['t5'] ? '✓' : ''}
         </div>
-        
+
         {/* Opening Header */}
         <div style={{
           position: 'absolute',
@@ -504,7 +504,7 @@ export default function InCallPage() {
         }}>
           オープニング
         </div>
-        
+
         {/* Line */}
         <div style={{
           position: 'absolute',
@@ -514,9 +514,9 @@ export default function InCallPage() {
           top: '80px',
           border: '1px solid #818181'
         }} />
-        
+
         {/* Verification Button */}
-        <div 
+        <div
           onClick={() => handleTodoToggle('t5', !checkedTodos['t5'])}
           style={{
             position: 'absolute',
@@ -538,7 +538,7 @@ export default function InCallPage() {
         >
           {checkedTodos['t5'] ? '✓' : ''}
         </div>
-        
+
         {/* Required Label */}
         <div style={{
           position: 'absolute',
@@ -565,7 +565,7 @@ export default function InCallPage() {
             必須
           </div>
         </div>
-        
+
         {/* Verification Text */}
         <div style={{
           position: 'absolute',
@@ -581,7 +581,7 @@ export default function InCallPage() {
         }}>
           本人確認の上でプロミスだと名乗る
         </div>
-        
+
         {/* Verification Script */}
         <div style={{
           position: 'absolute',
@@ -595,11 +595,11 @@ export default function InCallPage() {
           lineHeight: '28px',
           color: '#000000'
         }}>
-          〇〇さまのお電話でまちがいないでしょうか。<br/>
-          ご本人さまであれば、生年月日を教えていただけますでしょうか？<br/>
+          〇〇さまのお電話でまちがいないでしょうか。<br />
+          ご本人さまであれば、生年月日を教えていただけますでしょうか？<br />
           確認がとれましたら、私、プロミスの◯◯と申します。
         </div>
-        
+
         {/* Info Background */}
         <div style={{
           position: 'absolute',
@@ -643,7 +643,7 @@ export default function InCallPage() {
           </div>
         </div>
       </div>
-      
+
       {/* Requirements Section */}
       <div style={{
         position: 'absolute',
@@ -655,9 +655,9 @@ export default function InCallPage() {
         border: '1px solid #818181',
         borderRadius: '13px'
       }}>
-        
+
         {/* Requirements Button */}
-        <div 
+        <div
           onClick={() => handleTodoToggle('t6', !checkedTodos['t6'])}
           style={{
             position: 'absolute',
@@ -678,7 +678,7 @@ export default function InCallPage() {
         >
           {checkedTodos['t6'] ? '✓' : ''}
         </div>
-        
+
         {/* Requirements Header */}
         <div style={{
           position: 'absolute',
@@ -694,7 +694,7 @@ export default function InCallPage() {
         }}>
           要件特定
         </div>
-        
+
         {/* Line */}
         <div style={{
           position: 'absolute',
@@ -704,9 +704,9 @@ export default function InCallPage() {
           top: '83px',
           border: '1px solid #818181'
         }} />
-        
+
         {/* Second Button */}
-        <div 
+        <div
           onClick={() => handleTodoToggle('t6', !checkedTodos['t6'])}
           style={{
             position: 'absolute',
@@ -728,7 +728,7 @@ export default function InCallPage() {
         >
           {checkedTodos['t6'] ? '✓' : ''}
         </div>
-        
+
         {/* Required Label 2 */}
         <div style={{
           position: 'absolute',
@@ -755,7 +755,7 @@ export default function InCallPage() {
             必須
           </div>
         </div>
-        
+
         {/* Requirements Text */}
         <div style={{
           position: 'absolute',
@@ -771,7 +771,7 @@ export default function InCallPage() {
         }}>
           今回の電話の要件を伝える
         </div>
-        
+
         {/* Requirements Example */}
         <div style={{
           position: 'absolute',
@@ -787,7 +787,7 @@ export default function InCallPage() {
         }}>
           例）支払いの遅延について状況をお伺いできればと思い、ご連絡いたしました。
         </div>
-        
+
         {/* Info Background 2 */}
         <div style={{
           position: 'absolute',
@@ -830,7 +830,7 @@ export default function InCallPage() {
             ＊ 「支払いが難しい＝滞納」とは言わない。理由のヒアリングに注力。
           </div>
         </div>
-        
+
         {/* Optional Label */}
         <div style={{
           position: 'absolute',
@@ -857,7 +857,7 @@ export default function InCallPage() {
             補足
           </div>
         </div>
-        
+
         {/* Situation Confirmation */}
         <div style={{
           position: 'absolute',
@@ -873,7 +873,7 @@ export default function InCallPage() {
         }}>
           事情について詳細確認
         </div>
-        
+
         {/* Situation Example */}
         <div style={{
           position: 'absolute',
@@ -889,7 +889,7 @@ export default function InCallPage() {
         }}>
           例）差し支えなければ、どういったご事情があって難しかったかお聞かせいただけますか？
         </div>
-        
+
         {/* Migration Info */}
         <div style={{
           position: 'absolute',
@@ -906,7 +906,7 @@ export default function InCallPage() {
           ＊ お客さまは移管確率60%のため、返済行動率を高めるために事実と今後の収支見込みを確認する
         </div>
       </div>
-      
+
       {/* Procedure Section */}
       <div style={{
         position: 'absolute',
@@ -918,9 +918,9 @@ export default function InCallPage() {
         border: '1px solid #818181',
         borderRadius: '13px'
       }}>
-        
+
         {/* Procedure Button */}
-        <div 
+        <div
           onClick={() => handleTodoToggle('t8', !checkedTodos['t8'])}
           style={{
             position: 'absolute',
@@ -942,7 +942,7 @@ export default function InCallPage() {
         >
           {checkedTodos['t8'] ? '✓' : ''}
         </div>
-        
+
         {/* Procedure Header */}
         <div style={{
           position: 'absolute',
@@ -958,7 +958,7 @@ export default function InCallPage() {
         }}>
           手続き
         </div>
-        
+
         {/* Procedure Selection */}
         <div style={{
           position: 'absolute',
@@ -987,10 +987,10 @@ export default function InCallPage() {
             }}
           >
             {mockProcedures.map(procedure => (
-              <option 
-                key={procedure.procedureId} 
+              <option
+                key={procedure.procedureId}
                 value={procedure.procedureId}
-                style={{background: '#FFFFFF', color: '#000000'}}
+                style={{ background: '#FFFFFF', color: '#000000' }}
               >
                 {procedure.name}
               </option>
@@ -1009,7 +1009,7 @@ export default function InCallPage() {
             ▼
           </div>
         </div>
-        
+
         {/* Line */}
         <div style={{
           position: 'absolute',
@@ -1019,9 +1019,9 @@ export default function InCallPage() {
           top: '95px',
           border: '1px solid #818181'
         }} />
-        
+
         {/* Negotiation Button */}
-        <div 
+        <div
           onClick={() => handleTodoToggle('t7', !checkedTodos['t7'])}
           style={{
             position: 'absolute',
@@ -1043,7 +1043,7 @@ export default function InCallPage() {
         >
           {checkedTodos['t7'] ? '✓' : ''}
         </div>
-        
+
         {/* Required Label 3 */}
         <div style={{
           position: 'absolute',
@@ -1070,7 +1070,7 @@ export default function InCallPage() {
             必須
           </div>
         </div>
-        
+
         {/* Negotiation Text */}
         <div style={{
           position: 'absolute',
@@ -1086,7 +1086,7 @@ export default function InCallPage() {
         }}>
           お客さまと返済期日・金額を交渉する
         </div>
-        
+
         {/* Negotiation Prompt */}
         <div style={{
           position: 'absolute',
@@ -1102,7 +1102,7 @@ export default function InCallPage() {
         }}>
           それでは、以下の候補をご確認いただけますか？
         </div>
-        
+
         {/* Payment Proposals */}
         <div style={{
           position: 'absolute',
@@ -1167,7 +1167,7 @@ export default function InCallPage() {
             ¥12,000
           </div>
         </div>
-        
+
         <div style={{
           position: 'absolute',
           width: '274px',
@@ -1231,7 +1231,7 @@ export default function InCallPage() {
             ¥9,000
           </div>
         </div>
-        
+
         <div style={{
           position: 'absolute',
           width: '275px',
@@ -1296,7 +1296,7 @@ export default function InCallPage() {
             ¥3,000（利息のみ）
           </div>
         </div>
-        
+
         {/* Negotiation Info */}
         <div style={{
           position: 'absolute',
@@ -1312,7 +1312,7 @@ export default function InCallPage() {
         }}>
           ＊ まずは本日から近い日付、約定日に近い日程で交渉する
         </div>
-        
+
         {/* Payment Method Section */}
         <div style={{
           position: 'absolute',
@@ -1322,8 +1322,8 @@ export default function InCallPage() {
           top: '574px',
           border: '1px solid #DEDEDE'
         }} />
-        
-        <div 
+
+        <div
           onClick={() => handleTodoToggle('t13', !checkedTodos['t13'])}
           style={{
             position: 'absolute',
@@ -1345,7 +1345,7 @@ export default function InCallPage() {
         >
           {checkedTodos['t13'] ? '✓' : ''}
         </div>
-        
+
         <div style={{
           position: 'absolute',
           width: '65px',
@@ -1371,7 +1371,7 @@ export default function InCallPage() {
             補足
           </div>
         </div>
-        
+
         <div style={{
           position: 'absolute',
           width: '240px',
@@ -1386,7 +1386,7 @@ export default function InCallPage() {
         }}>
           支払い方法を確認する
         </div>
-        
+
         <div style={{
           position: 'absolute',
           width: '722px',
@@ -1401,7 +1401,7 @@ export default function InCallPage() {
         }}>
           現在の方法（ATM/銀行振込など）をご希望ですか？
         </div>
-        
+
         {/* Fee Section */}
         <div style={{
           position: 'absolute',
@@ -1411,8 +1411,8 @@ export default function InCallPage() {
           top: '713px',
           border: '1px solid #DEDEDE'
         }} />
-        
-        <div 
+
+        <div
           onClick={() => handleTodoToggle('t14', !checkedTodos['t14'])}
           style={{
             position: 'absolute',
@@ -1434,7 +1434,7 @@ export default function InCallPage() {
         >
           {checkedTodos['t14'] ? '✓' : ''}
         </div>
-        
+
         <div style={{
           position: 'absolute',
           width: '65px',
@@ -1460,7 +1460,7 @@ export default function InCallPage() {
             補足
           </div>
         </div>
-        
+
         <div style={{
           position: 'absolute',
           width: '192px',
@@ -1475,7 +1475,7 @@ export default function InCallPage() {
         }}>
           手数料を案内する
         </div>
-        
+
         <div style={{
           position: 'absolute',
           width: '722px',
@@ -1491,7 +1491,7 @@ export default function InCallPage() {
           支払ATMでの取扱手数料が発生します。手数料は返済金額とは別にお客さまの負担になります。
         </div>
       </div>
-      
+
       {/* Closing Section */}
       <div style={{
         position: 'absolute',
@@ -1503,8 +1503,8 @@ export default function InCallPage() {
         border: '1px solid #818181',
         borderRadius: '13px'
       }}>
-        
-        <div 
+
+        <div
           onClick={() => handleTodoToggle('t9', !checkedTodos['t9'])}
           style={{
             position: 'absolute',
@@ -1526,7 +1526,7 @@ export default function InCallPage() {
         >
           {checkedTodos['t9'] ? '✓' : ''}
         </div>
-        
+
         <div style={{
           position: 'absolute',
           width: '229px',
@@ -1541,7 +1541,7 @@ export default function InCallPage() {
         }}>
           クロージング
         </div>
-        
+
         <div style={{
           position: 'absolute',
           width: '1120px',
@@ -1550,8 +1550,8 @@ export default function InCallPage() {
           top: '99px',
           border: '1px solid #818181'
         }} />
-        
-        <div 
+
+        <div
           onClick={() => handleTodoToggle('t10', !checkedTodos['t10'])}
           style={{
             position: 'absolute',
@@ -1573,7 +1573,7 @@ export default function InCallPage() {
         >
           {checkedTodos['t10'] ? '✓' : ''}
         </div>
-        
+
         <div style={{
           position: 'absolute',
           width: '65px',
@@ -1599,7 +1599,7 @@ export default function InCallPage() {
             必須
           </div>
         </div>
-        
+
         <div style={{
           position: 'absolute',
           width: '336px',
@@ -1614,7 +1614,7 @@ export default function InCallPage() {
         }}>
           次回の期日・支払額を確認する
         </div>
-        
+
         <div style={{
           position: 'absolute',
           width: '717px',
@@ -1629,7 +1629,7 @@ export default function InCallPage() {
         }}>
           それでは、○○○○年○月○日までに、提携ATMでのお支払いということで承りました。
         </div>
-        
+
         <div style={{
           position: 'absolute',
           width: '1120px',
@@ -1638,8 +1638,8 @@ export default function InCallPage() {
           top: '236px',
           border: '1px solid #DEDEDE'
         }} />
-        
-        <div 
+
+        <div
           onClick={() => handleTodoToggle('t11', !checkedTodos['t11'])}
           style={{
             position: 'absolute',
@@ -1661,7 +1661,7 @@ export default function InCallPage() {
         >
           {checkedTodos['t11'] ? '✓' : ''}
         </div>
-        
+
         <div style={{
           position: 'absolute',
           width: '65px',
@@ -1687,7 +1687,7 @@ export default function InCallPage() {
             補足
           </div>
         </div>
-        
+
         <div style={{
           position: 'absolute',
           width: '528px',
@@ -1702,7 +1702,7 @@ export default function InCallPage() {
         }}>
           次回期日までは督促が停止されることを案内する
         </div>
-        
+
         <div style={{
           position: 'absolute',
           width: '722px',
@@ -1717,7 +1717,7 @@ export default function InCallPage() {
         }}>
           このお電話をもって、今後は次の期日までお客様に個別のご連絡は行わないように進めますので、ご了承ください。
         </div>
-        
+
         <div style={{
           position: 'absolute',
           width: '1120px',
@@ -1726,8 +1726,8 @@ export default function InCallPage() {
           top: '395px',
           border: '1px solid #DEDEDE'
         }} />
-        
-        <div 
+
+        <div
           onClick={() => handleTodoToggle('t12', !checkedTodos['t12'])}
           style={{
             position: 'absolute',
@@ -1749,7 +1749,7 @@ export default function InCallPage() {
         >
           {checkedTodos['t12'] ? '✓' : ''}
         </div>
-        
+
         <div style={{
           position: 'absolute',
           width: '65px',
@@ -1775,7 +1775,7 @@ export default function InCallPage() {
             補足
           </div>
         </div>
-        
+
         <div style={{
           position: 'absolute',
           width: '432px',
@@ -1790,7 +1790,7 @@ export default function InCallPage() {
         }}>
           お客さまからの質問がないかを確認する
         </div>
-        
+
         <div style={{
           position: 'absolute',
           width: '722px',
@@ -1806,7 +1806,7 @@ export default function InCallPage() {
           私からのご案内は以上となりますが、最後にお客さまから気になることなどございますか？
         </div>
       </div>
-      
+
       {/* End Call Button - Bottom of Content */}
       <div style={{
         position: 'absolute',
@@ -1847,7 +1847,7 @@ export default function InCallPage() {
           🔚 通話終了
         </button>
       </div>
-      
+
     </div>
   )
 }
