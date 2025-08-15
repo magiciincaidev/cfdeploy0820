@@ -8,11 +8,9 @@ interface UserCallViewProps {
     userId: string;
     operatorId: string;
     conversationId: string;
-    sessionId?: string;
-    onLeave?: () => void;
 }
 
-export default function UserCallView({ userId, operatorId, conversationId, sessionId, onLeave }: UserCallViewProps) {
+export default function UserCallView({ userId, operatorId, conversationId }: UserCallViewProps) {
     const [userMessage, setUserMessage] = useState('')
     const [conversationHistory, setConversationHistory] = useState<ConversationMessage[]>([])
     const [isLoading, setIsLoading] = useState(false)
@@ -111,14 +109,6 @@ export default function UserCallView({ userId, operatorId, conversationId, sessi
                 <div className="max-w-7xl mx-auto px-4 py-4">
                     <div className="flex justify-between items-center">
                         <h1 className="text-2xl font-bold text-gray-900">ユーザー通話画面</h1>
-                        {onLeave && (
-                            <button
-                                onClick={onLeave}
-                                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                            >
-                                退室
-                            </button>
-                        )}
                     </div>
                 </div>
             </div>
