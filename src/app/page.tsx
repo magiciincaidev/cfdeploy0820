@@ -12,21 +12,6 @@ export default function Home() {
   const phase = getPhase()
   const [showDemo, setShowDemo] = useState(false)
 
-  // 通話画面用の共有IDを生成
-  const [sharedIds, setSharedIds] = useState(() => {
-    const userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-    const operatorId = `operator_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-    const conversationId = `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-    return { userId, operatorId, conversationId }
-  })
-
-  // 通話画面への遷移処理
-  const handleNavigateToCall = (role: 'user' | 'operator') => {
-    const url = `/in-call?role=${role}&userId=${sharedIds.userId}&operatorId=${sharedIds.operatorId}&conversationId=${sharedIds.conversationId}`
-    // 新しいタブで開く
-    window.open(url, '_blank')
-  }
-
   // 認証状態を初期化
   useEffect(() => {
     initializeAuth()
@@ -164,53 +149,6 @@ export default function Home() {
               α版にアクセスする
             </Link>
           </div>
-
-          {/* オペレーター通話画面ボタン */}
-          <div style={{ marginTop: '12px' }}>
-            <button
-              onClick={() => handleNavigateToCall('operator')}
-              title="新しいタブでオペレーター通話画面を開く"
-              style={{
-                display: 'inline-block',
-                padding: '16px 32px',
-                background: 'green',
-                color: '#FFFFFF',
-                border: 'none',
-                borderRadius: '8px',
-                fontSize: '18px',
-                fontWeight: '600',
-                fontFamily: 'Inter',
-                transition: 'all 0.3s ease',
-                cursor: 'pointer'
-              }}
-            >
-              🖥️ オペレーター通話画面
-            </button>
-          </div>
-
-          {/* ユーザー通話画面ボタン */}
-          <div style={{ marginTop: '12px' }}>
-            <button
-              onClick={() => handleNavigateToCall('user')}
-              title="新しいタブでユーザー通話画面を開く"
-              style={{
-                display: 'inline-block',
-                padding: '16px 32px',
-                background: '#FF9800',
-                color: '#FFFFFF',
-                border: 'none',
-                borderRadius: '8px',
-                fontSize: '18px',
-                fontWeight: '600',
-                fontFamily: 'Inter',
-                transition: 'all 0.3s ease',
-                cursor: 'pointer'
-              }}
-            >
-              👤 ユーザー通話画面
-            </button>
-          </div>
-
 
           {/* Demo Button - 一時的に非表示 */}
           {false && (
