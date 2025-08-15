@@ -21,12 +21,6 @@ export default function OperatorCallView({ userId, operatorId, conversationId }:
     const [checkedTodos, setCheckedTodos] = useState<{ [key: string]: boolean }>({})
 
     useEffect(() => {
-        // オペレーター画面への直接アクセスの場合は認証チェックをスキップ
-        if (window.location.search.includes('role=operator')) {
-            // 直接アクセスの場合はセッション管理をスキップ
-            return
-        }
-
         initializeAuth()
         if (!isAuthenticated) {
             router.push('/')
@@ -73,35 +67,29 @@ export default function OperatorCallView({ userId, operatorId, conversationId }:
 
     const currentProcedure = mockProcedures.find(p => p.procedureId === currentProcedureId)
 
-    // オペレーター画面への直接アクセスの場合は認証チェックをスキップ
-    const isDirectOperatorAccess = window.location.search.includes('role=operator')
-
-    // 直接アクセスでない場合のみ認証チェック
-    if (!isDirectOperatorAccess) {
-        // 認証されていない場合はローディング表示
-        if (!isAuthenticated) {
-            return (
+    // 認証されていない場合はローディング表示
+    if (!isAuthenticated) {
+        return (
+            <div style={{
+                minHeight: '100vh',
+                background: '#FCFCFC',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+            }}>
                 <div style={{
-                    minHeight: '100vh',
-                    background: '#FCFCFC',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
+                    fontSize: '18px',
+                    color: '#666',
+                    fontFamily: 'Inter'
                 }}>
-                    <div style={{
-                        fontSize: '18px',
-                        color: '#666',
-                        fontFamily: 'Inter'
-                    }}>
-                        認証を確認中...
-                    </div>
+                    認証を確認中...
                 </div>
-            )
-        }
+            </div>
+        )
+    }
 
-        if (!currentSession) {
-            return <div>Loading...</div>
-        }
+    if (!currentSession) {
+        return <div>Loading...</div>
     }
 
     return (
@@ -138,25 +126,6 @@ export default function OperatorCallView({ userId, operatorId, conversationId }:
                     color: '#000000'
                 }}>
                     受架電支援AI
-                </div>
-
-                {/* 疎通確認用情報 */}
-                <div style={{
-                    position: 'absolute',
-                    right: '20px',
-                    top: '20px',
-                    background: 'rgba(0,0,0,0.8)',
-                    color: 'white',
-                    padding: '8px 12px',
-                    borderRadius: '6px',
-                    fontSize: '11px',
-                    fontFamily: 'monospace',
-                    maxWidth: '200px'
-                }}>
-                    <div><strong>OPERATOR VIEW</strong></div>
-                    <div>User ID: {userId}</div>
-                    <div>Operator ID: {operatorId}</div>
-                    <div>Conversation ID: {conversationId}</div>
                 </div>
             </div>
 

@@ -109,6 +109,11 @@ export default function UserCallView({ userId, operatorId, conversationId }: Use
                 <div className="max-w-7xl mx-auto px-4 py-4">
                     <div className="flex justify-between items-center">
                         <h1 className="text-2xl font-bold text-gray-900">ユーザー通話画面</h1>
+                        <div className="text-sm text-gray-600">
+                            <div>ユーザーID: {userId}</div>
+                            <div>オペレーターID: {operatorId}</div>
+                            <div>会話ID: {conversationId}</div>
+                        </div>
                     </div>
                 </div>
             </div>

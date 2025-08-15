@@ -12,14 +12,6 @@ export default function Home() {
   const phase = getPhase()
   const [showDemo, setShowDemo] = useState(false)
 
-  // 通話画面用の共有IDを生成
-  const [sharedIds, setSharedIds] = useState(() => {
-    const userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-    const operatorId = `operator_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-    const conversationId = `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-    return { userId, operatorId, conversationId }
-  })
-
   // 認証状態を初期化
   useEffect(() => {
     initializeAuth()
@@ -161,7 +153,7 @@ export default function Home() {
           {/* オペレーター通話画面ボタン */}
           <div style={{ marginTop: '12px' }}>
             <Link
-              href={`/in-call?role=operator&userId=${sharedIds.userId}&operatorId=${sharedIds.operatorId}&conversationId=${sharedIds.conversationId}`}
+              href="/in-call?role=operator"
               style={{
                 display: 'inline-block',
                 padding: '16px 32px',
@@ -182,7 +174,7 @@ export default function Home() {
           {/* ユーザー通話画面ボタン */}
           <div style={{ marginTop: '12px' }}>
             <Link
-              href={`/in-call?role=user&userId=${sharedIds.userId}&operatorId=${sharedIds.operatorId}&conversationId=${sharedIds.conversationId}`}
+              href="/in-call?role=user"
               style={{
                 display: 'inline-block',
                 padding: '16px 32px',
