@@ -4,6 +4,7 @@ import useCallStore from '@/src/infrastructure/store/callStore'
 import { mockCustomers, mockMemoSummaries, mockTodoItems } from '@/src/shared/data/mockData'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import PreCallPhaseScreen from '@/src/components/precall/PreCallPhaseScreen'
 
 export default function BeforeCallPage() {
   const router = useRouter()
@@ -82,7 +83,18 @@ export default function BeforeCallPage() {
     )
   }
 
+  // 新しいPreCallPhaseScreenを使用
   return (
+    <PreCallPhaseScreen 
+      onStartCall={() => {
+        startCall()
+        router.push('/in-call')
+      }}
+    />
+  )
+
+  // 従来の表示（コメントアウト）
+  /*return (
     <div style={{
       position: 'relative',
       width: '1678px',
@@ -674,5 +686,5 @@ export default function BeforeCallPage() {
         </div>
       </div>
     </div>
-  )
+  )*/
 }
